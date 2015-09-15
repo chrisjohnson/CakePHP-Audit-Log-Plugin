@@ -63,7 +63,7 @@ class AuditableBehavior extends ModelBehavior {
        * Note the "===" in the condition. The type check is important,
        * so don't change it just because it may look like a mistake.
        */
-      if( !array_key_exists( $model_name, $Model->hasAndBelongsToMany ) || ( is_array($Model->$model_name->actsAs) && array_search( 'Auditable', $Model->$model_name->actsAs ) === true ) ) {
+      if( !array_key_exists( $model_name, $Model->hasAndBelongsToMany ) || ( !empty($Model->$model_name) && is_array($Model->$model_name->actsAs) && array_search( 'Auditable', $Model->$model_name->actsAs ) === true ) ) {
         unset( $this->settings[$Model->alias]['habtm'][$index] );
       }
     }
@@ -172,10 +172,17 @@ class AuditableBehavior extends ModelBehavior {
            * If the property exists in the original _and_ the
            * value is different, store it.
            */
+		  if (is_array($value) || is_object($value)) {
+		  	$value = json_encode($value);
+		  }
+		  $old_value = $this->_original[$Model->alias][$property];
+		  if (is_array($old_value) || is_object($old_value)) {
+		  	$old_value = json_encode($old_value);
+		  }
           $delta = array(
             'AuditDelta' => array(
               'property_name' => $property,
-              'old_value'     => $this->_original[$Model->alias][$property],
+              'old_value'     => $old_value,
               'new_value'     => $value
             )
           );
